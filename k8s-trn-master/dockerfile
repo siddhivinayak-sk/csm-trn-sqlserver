@@ -1,0 +1,15 @@
+FROM openjdk:8-jre-alpine
+LABEL maintainer="Sandeep Kumar"
+WORKDIR /
+ARG VER=0.1
+ENV VER ${VER}
+ENV CSM_HOST csm
+ENV CSM_PORT 81
+ENV DB_HOST localhost
+ENV DB_PORT 1433
+ENV DB_SCHEMA trn
+ENV DB_USER sa
+ENV DB_PASSWORD p@ssw0rd
+ADD target/trn-$VER.jar /opt/lib/trn.jar
+EXPOSE 82
+ENTRYPOINT ["java", "-DDB_HOST=${DB_HOST}", "-DDB_PORT=${DB_PORT}", "-DDB_SCHEMA=${DB_SCHEMA}", "-DDB_USER=${DB_USER}", "-DDB_PASSWORD=${DB_PASSWORD}", "-DCSM_HOST=${CSM_HOST}", "-DCSM_PORT=${CSM_PORT}" "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m","-Xss16m","-jar", "-Dconsole.level=INFO", "-Dspring.profiles.active=docker", "/opt/lib/trn.jar"]

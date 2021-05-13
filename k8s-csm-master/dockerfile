@@ -1,0 +1,13 @@
+FROM openjdk:8-jre-alpine
+LABEL maintainer="Sandeep Kumar"
+WORKDIR /
+ARG VER=0.1
+ENV VER ${VER}
+ENV DB_HOST localhost
+ENV DB_PORT 1433
+ENV DB_SCHEMA csm
+ENV DB_USER sa
+ENV DB_PASSWORD p@ssw0rd
+ADD target/csm-$VER.jar /opt/lib/csm.jar
+EXPOSE 81
+ENTRYPOINT ["java", "-DDB_HOST=${DB_HOST}", "-DDB_PORT=${DB_PORT}", "-DDB_SCHEMA=${DB_SCHEMA}", "-DDB_USER=${DB_USER}", "-DDB_PASSWORD=${DB_PASSWORD}", "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m","-Xss16m","-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]
