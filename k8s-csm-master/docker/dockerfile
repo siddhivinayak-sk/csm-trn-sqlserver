@@ -3,11 +3,6 @@ LABEL maintainer="Sandeep Kumar"
 WORKDIR /
 ARG VER=0.1
 ENV VER ${VER}
-ENV D_DB_HOST localhost
-ENV D_DB_PORT 1433
-ENV D_DB_SCHEMA csm
-ENV D_DB_USER sa
-ENV D_DB_PASSWORD p@ssw0rd
 ADD csm-$VER.jar /opt/lib/csm.jar
-EXPOSE 81
-ENTRYPOINT ["java", "-DDB_HOST=${D_DB_HOST}", "-DDB_PORT=${D_DB_PORT}", "-DDB_SCHEMA=${D_DB_SCHEMA}", "-DDB_USER=${D_DB_USER}", "-DDB_PASSWORD=${D_DB_PASSWORD}", "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m","-Xss16m","-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]
+EXPOSE 80
+ENTRYPOINT ["java", "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m","-Xss16m","-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]

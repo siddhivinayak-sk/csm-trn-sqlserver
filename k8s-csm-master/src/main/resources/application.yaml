@@ -1,6 +1,6 @@
 security.basic.enabled: false
 server.servlet.context-path: /csm-service
-server.port: 81
+server.port: 80
 
 access_control_allow_origin : '*'
 
@@ -48,7 +48,8 @@ spring.datasource.password :
 ---
 spring:
   profiles: docker-sqlserver
-spring.datasource.url : jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_SCHEMA:csm}
+#spring.datasource.url : jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_SCHEMA:csm}
+spring.datasource.url : ${DB_URL}
 spring.datasource.username : ${DB_USER:sa}
 spring.datasource.password : ${DB_PASSWORD:p@ssw0rd}
 ---
