@@ -9,6 +9,6 @@ public class BuildConstants {
 	
 	public static final String VERSION = "0.1";
 
-	public static final String BUILD = "2021_5_13_5_6_56-1";
+	public static final String BUILD = "2021_5_15_7_30_16-1";
 	
 }

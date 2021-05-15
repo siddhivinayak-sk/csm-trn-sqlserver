@@ -7,12 +7,12 @@ metadata:
 spec:
   ports:
   - protocol: TCP
-    name: "81"
-    port: 81
-    targetPort: 81
+    name: "80"
+    port: 80
+    targetPort: 80
   selector:
     app: csm
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,7 +25,7 @@ spec:
   selector:
     matchLabels:
       app: csm
-  replicas: 2
+  replicas: 1
   strategy: {}
   template:
     metadata:
@@ -33,13 +33,14 @@ spec:
       labels:
         app: csm
     spec:
-      #nodeName: devciwknd002
       containers:
       - name: csm
-        image: hub.docker.local:5000/bank/csm
+        image: hub.docker.local:5000/bank/csm-sqlserver:latest
+        command: ["java"]
+        args: ["-DDB_URL=jdbc:sqlserver://192.168.1.102:1433;databaseName=dcsm", "-DDB_USER=csm", "-DDB_PASSWORD=p@ssw0rd", "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m", "-Xss16m", "-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]
         imagePullPolicy: "Always"
         ports:
-        - containerPort: 81
+        - containerPort: 80
         resources:
           limits:
             cpu: "1"
@@ -49,3 +50,22 @@ spec:
             memory: "536870912"
       restartPolicy: Always
 status: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: csm-ingress 
+  namespace: bank-apps
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /csm-service
+        pathType: Prefix
+        backend:
+          service:
+            name: csm
+            port:
+              number: 80
