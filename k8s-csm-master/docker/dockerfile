@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM alpine-jre-8:latest
 LABEL maintainer="Sandeep Kumar"
 WORKDIR /
 ARG VER=0.1

@@ -33,11 +33,62 @@ spec:
       labels:
         app: csm
     spec:
+      initContainers:
+      - name: init-container
+        image: hub.docker.local:5000/alpine-jre-8:latest
+        command: ["java", "-version"]
       containers:
       - name: csm
         image: hub.docker.local:5000/bank/csm-sqlserver:latest
+        lifecycle:
+          postStart:
+            exec:
+              #command: ["curl", "-X", "POST", "http://192.168.1.101:5050/", "-d", "started"]
+              command: 
+              - /bin/sh
+              - "-c"
+              - |
+                export currenttime=$(date) && export machinename=$(hostname) && curl -X POST http://192.168.1.101:5050/ -d "action=MS StartUp, time=$currenttime, host=$machinename"
+          preStop:
+            exec:
+              #command: ["curl", "-X", "POST", "http://192.168.1.101:5050/", "-d", "stopped"]
+              command: 
+              - /bin/sh
+              - "-c"
+              - |
+                export currenttime=$(date) && export machinename=$(hostname) && curl -X POST http://192.168.1.101:5050/ -d "action=MS Stopped, time=$currenttime, host=$machinename"
         command: ["java"]
-        args: ["-DDB_URL=jdbc:sqlserver://192.168.1.102:1433;databaseName=dcsm", "-DDB_USER=csm", "-DDB_PASSWORD=p@ssw0rd", "-Dspring.profiles.active=docker-sqlserver", "-Xmx512m", "-Xss16m", "-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]
+        args: ["-DDB_URL=jdbc:sqlserver://192.168.1.101:1433;databaseName=dcsm", "-DDB_USER=sa", "-DDB_PASSWORD=p@ssw0rd", "-Dspring.profiles.active=docker-sqlserver", "-Xmx128m", "-Xss1m", "-jar", "-Dconsole.level=INFO", "/opt/lib/csm.jar"]
+
+        livenessProbe:
+          httpGet:
+            path: /csm-service/actuator/health
+            port: 80
+            httpHeaders:
+            - name: Content-Type
+              value: plain/text
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+        #  exec:
+        #    command:
+        #    - cat
+        #    - /tmp/healthy
+        #  initialDelaySeconds: 5
+        #  periodSeconds: 5
+          httpGet:
+            path: /csm-service/actuator/health
+            port: 80
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        startupProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
         imagePullPolicy: "Always"
         ports:
         - containerPort: 80
@@ -55,14 +106,38 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: csm-ingress 
-  namespace: bank-apps
+#  namespace: bank-apps
   annotations:
-    kubernetes.io/ingress.class: "nginx"
+#    kubernetes.io/ingress.class: addon-http-application-routing
 spec:
   rules:
+  - host: www.mybank.com
+    http:
+      paths:
+      - path: /csm-service
+        pathType: Prefix
+        backend:
+          service:
+            name: csm
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: csm
+            port:
+              number: 80
   - http:
       paths:
       - path: /csm-service
+        pathType: Prefix
+        backend:
+          service:
+            name: csm
+            port:
+              number: 80
+      - path: /
         pathType: Prefix
         backend:
           service:
